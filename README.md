@@ -1,5 +1,5 @@
-# comfortable-panda
-Chrome extention that makes PandA life comfortable
+# ComfortablePandA-Extension
+A browser extention that makes PandA life comfortable
 
 # Installation
 1. Goto `chrome://extensions/` on your GoogleChrome
