@@ -1,5 +1,5 @@
-# comfortable-panda
-Chrome extention that makes PandA life comfortable
+# ComfortablePandA-Extension
+A browser extention that makes PandA life comfortable
 
 # Installation
 1. Goto `chrome://extensions/` on your GoogleChrome
@@ -54,6 +54,7 @@ Also check box is available for you to distinguish completed assignments from wo
 - 2020/10/02 v1.5.2 Fixed badge reset bug.
 - 2020/10/25 v1.6.0 Add cache.
 - 2020/10/28 v1.6.1 Using async on storage.get
+- 2020/12/22 v1.7.0 Order assignments by closestTime.
 
 # License
 MIT
