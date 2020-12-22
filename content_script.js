@@ -77,7 +77,7 @@ function sortKadai(parsedKadai) {
         parsedKadai[i].kadaiList = kadaiList;
     }
 
-    parsedKadai.sort(function(a,b) {
+    parsedKadai.sort(function (a, b) {
         if (a.closestTime < b.closestTime) return -1;
         else return 1;
     });
@@ -343,7 +343,7 @@ function createSideNav(lastKadaiGetTime) {
     let addMemoButton = createElem("button", {className: "plus-button", innerText: "+"});
     addMemoButton.addEventListener('click', toggleMemoBox, true);
 
-    if ((nowTime - lastKadaiGetTime)/1000 >= cacheInterval) lastKadaiGetTime = nowTime
+    if ((nowTime - lastKadaiGetTime) / 1000 >= cacheInterval) lastKadaiGetTime = nowTime
     if (lastKadaiGetTime === undefined) lastKadaiGetTime = nowTime
     let dateTime = new Date(lastKadaiGetTime);
     let lastKadaiLoad = createElem("p", {className: "kadai-time"});
@@ -837,7 +837,7 @@ function getKadaiTodo(parsedKadai) {
                 }
             }
         }
-        if (parsedKadai.length !== 0){
+        if (parsedKadai.length !== 0) {
             saveKadaiTodo(kadaiListAll);
         }
         insertSideNav(parsedKadai, kadaiListAll, tabList);
@@ -1059,26 +1059,26 @@ function updateFlags() {
 function loadAndDisplay(lastKadaiGetTime) {
     // 0. Cache check
 
-        // console.log("lastget:",lastKadaiGetTime);
-        // console.log("time:",(nowTime - lastKadaiGetTime)/1000);
-        if ((nowTime - lastKadaiGetTime)/1000 < cacheInterval)  {
-            console.log("Loaded from cache");
-            getFromStorage('kadai').then(function (storedKadai) {
-                display(storedKadai, 0);
-                miniPandAReady();
-            });
-        }else{
-            console.log("Loaded from PandA");
-            // 1. Get latest kadai
-            getKadaiFromPandA().done(function (result) {
-                let collectionCount = result.assignment_collection.length;
-                let parsedKadai = parseKadai(result);
+    // console.log("lastget:",lastKadaiGetTime);
+    // console.log("time:",(nowTime - lastKadaiGetTime)/1000);
+    if ((nowTime - lastKadaiGetTime) / 1000 < cacheInterval) {
+        console.log("Loaded from cache");
+        getFromStorage('kadai').then(function (storedKadai) {
+            display(storedKadai, 0);
+            miniPandAReady();
+        });
+    } else {
+        console.log("Loaded from PandA");
+        // 1. Get latest kadai
+        getKadaiFromPandA().done(function (result) {
+            let collectionCount = result.assignment_collection.length;
+            let parsedKadai = parseKadai(result);
 
-                display(parsedKadai, collectionCount);
+            display(parsedKadai, collectionCount);
 
-                miniPandAReady();
-            });
-        }
+            miniPandAReady();
+        });
+    }
 
 
 }
@@ -1087,14 +1087,14 @@ function loadExamfromStorage() {
     Promise.all([getFromStorage('parsedExam'), getFromStorage('examTodo'), getFromStorage('lastExamGetTime')])
         .then(([parsedExam, examToDo, lastExamGetTime]) => {
             insertSideNavExam(parsedExam, examToDo, tabList, lastExamGetTime);
-    });
+        });
 }
 
-function display(parsedKadai, collectionCount){
+function display(parsedKadai, collectionCount) {
     getKadaiTodo(parsedKadai);
 
     Promise.all([getFromStorage('kadai'), getFromStorage('hasNewItem')])
-        .then(([storedKadai, hasNewItem])=>{
+        .then(([storedKadai, hasNewItem]) => {
             // 3. Create Up-to-date list.
             let upToDateKadaiList = [];
             if (typeof storedKadai === 'undefined') {
@@ -1112,7 +1112,7 @@ function display(parsedKadai, collectionCount){
             }
             let notificationList = createNotificationList(upToDateKadaiList, hasNewItem);
 
-            if (collectionCount !== 0){
+            if (collectionCount !== 0) {
                 saveHasNew(notificationList);
                 saveKadai(parsedKadai);
             }
