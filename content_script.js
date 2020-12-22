@@ -82,8 +82,6 @@ function sortKadai(parsedKadai) {
         else return 1;
     });
 
-    console.log(parsedKadai)
-
     return parsedKadai;
 }
 
