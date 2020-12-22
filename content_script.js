@@ -401,6 +401,8 @@ function createSideNav(lastKadaiGetTime) {
 }
 
 function insertSideNav(parsedKadai, kadaiListAll, lectureIDList) {
+    console.log("parsedKadai",parsedKadai);
+    console.log("kadailistALL", kadaiListAll);
     let idList = parseID(lectureIDList);
     parsedKadai = sortKadai(parsedKadai);
 
@@ -494,13 +496,13 @@ function insertSideNav(parsedKadai, kadaiListAll, lectureIDList) {
         kadaiTab.appendChild(relaxDiv);
     }
 
-    Promise.all([getFromStorage('kadaiMemo'), getFromStorage('kadaiMemoTodo')])
-        .then(([kadaiMemo, kadaiMemoTodo]) => {
-            if (kadaiMemo !== undefined) {
-                if (kadaiMemoTodo === undefined) kadaiMemoTodo = [];
-                addMemo(kadaiMemo, kadaiMemoTodo);
-            }
-        });
+    // Promise.all([getFromStorage('kadaiMemo'), getFromStorage('kadaiMemoTodo')])
+    //     .then(([kadaiMemo, kadaiMemoTodo]) => {
+    //         if (kadaiMemo !== undefined) {
+    //             if (kadaiMemoTodo === undefined) kadaiMemoTodo = [];
+    //             addMemo(kadaiMemo, kadaiMemoTodo);
+    //         }
+    //     });
 }
 
 function insertSideNavExam(parsedExam, examListAll, lectureIDList, lastExamGetTime) {
@@ -846,6 +848,103 @@ function getKadaiTodo(parsedKadai) {
     });
 }
 
+function mergeKadai(kadaiListTarget, kadaiListSource, isMemo) {
+    console.log("memo", kadaiListSource)
+
+    for (let i=0; i<kadaiListSource.length; i++) {
+
+
+
+
+
+        let kadaiList = kadaiListSource[i].kadaiList;
+
+        for (let j=0; j<kadaiList.length; j++){
+            let temp = {};
+
+            let kid = kadaiList[i].kid;
+            let due = kadaiList[i].dueTimeStamp;
+            let title = kadaiList[i].kadaiTitle;
+            let isFinished = kadaiList[i].isFinished;
+
+            // すでに科目がListにあるか見る
+            const q = kadaiListTarget.findIndex((kadai) => {
+                return (kadai.lectureID === kadaiListSource[i].lectureID);
+            });
+
+            //無ければ新規作成
+            if (q === -1) {
+                temp.lectureID = kadaiListSource[i].lectureID;
+                temp.kadaiList = [{kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo}];
+                temp.closestTime = due;
+                temp.farthestTime = due;
+
+                kadaiListTarget.push(temp);
+            } else {
+                temp = kadaiListTarget[q];
+                //一番期限がやばい課題のタイムスタンプを記録
+                if (temp.closestTime > due) temp.closestTime = due;
+                if (temp.farthestTime < due) temp.farthestTime = due;
+
+                temp.kadaiList.push({kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo});
+                kadaiListTarget[q] = temp;
+            }
+
+        }
+
+
+    }
+    return kadaiListTarget
+}
+
+function mergeKadaiListAll(kadaiListTarget, kadaiListSource, isMemo) {
+    let mergedKadaiListAll = kadaiListTarget
+
+    for (let i=0; i<kadaiListSource.length; i++) {
+        mergedKadaiListAll.push({kid:kadaiListSource[i].kid, isFinished: kadaiListSource[i].isFinished, isMemo: isMemo})
+    }
+
+
+
+    return mergedKadaiListAll
+}
+
+function getKadaiTodo2(parsedKadai) {
+    let kadaiListAll = extractKadai(parsedKadai);
+
+    Promise.all([getFromStorage('kadaiTodo'), getFromStorage('kadaiMemo'), getFromStorage('kadaiMemoTodo')])
+        .then(([kadaiTodo, kadaiMemo, kadaiMemoTodo]) => {
+            // 通常の課題の処理
+            if (kadaiTodo !== undefined) {
+                for (let i = 0; i < kadaiListAll.length; i++) {
+                    let kid = kadaiListAll[i].kid;
+                    const q = kadaiTodo.findIndex((kadai) => {
+                        return (kadai.kid === kid);
+                    });
+                    if (q !== -1) {
+                        if (kadaiTodo[q].isFinished === 1) kadaiListAll[i].isFinished = 1;
+                    }
+                }
+            }
+            if (parsedKadai.length !== 0){
+                saveKadaiTodo(kadaiListAll);
+            }
+
+            // 手動追加の課題メモの処理
+            if (kadaiMemo === undefined) kadaiMemo = [];
+            if (kadaiMemoTodo === undefined) kadaiMemoTodo = [];
+
+            let mergedKadaiList = mergeKadai(parsedKadai, kadaiMemo, 1)
+            let mergedKadaiListAll = mergeKadaiListAll(kadaiListAll, kadaiMemoTodo, 1)
+
+            // insertSideNav(parsedKadai, kadaiListAll, tabList);
+            insertSideNav(mergedKadaiList, mergedKadaiListAll, tabList);
+
+        });
+}
+
+
+
 function getExamTodo(examListAll, parsedExam) {
     getFromStorage('examTodo').then(function (examTodo) {
         if (typeof examTodo !== 'undefined' && examTodo.length > 0) {
@@ -1093,7 +1192,7 @@ function loadExamfromStorage() {
 }
 
 function display(parsedKadai, collectionCount){
-    getKadaiTodo(parsedKadai);
+    getKadaiTodo2(parsedKadai);
 
     Promise.all([getFromStorage('kadai'), getFromStorage('hasNewItem')])
         .then(([storedKadai, hasNewItem])=>{
