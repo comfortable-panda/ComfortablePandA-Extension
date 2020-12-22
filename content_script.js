@@ -76,6 +76,14 @@ function sortKadai(parsedKadai) {
         });
         parsedKadai[i].kadaiList = kadaiList;
     }
+
+    parsedKadai.sort(function(a,b) {
+        if (a.closestTime < b.closestTime) return -1;
+        else return 1;
+    });
+
+    console.log(parsedKadai)
+
     return parsedKadai;
 }
 
@@ -130,6 +138,7 @@ function toggleMemoBox() {
 
 function addMemo(kadaiMemo, kadaiMemoListAll) {
     let idList = parseID(tabList);
+    kadaiMemo = sortKadai(kadaiMemo)
     //Delete old
     let oldMemo = document.querySelectorAll('.todoMemo');
     oldMemo.forEach((item) => {
