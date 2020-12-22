@@ -299,7 +299,7 @@ function todoAdd(event) {
         getFromStorage('kadaiMemoTodo').then(function (kadaiMemoTodo) {
             let kadaiMemoListAll = parseKadaiMemo(kadaiMemo, kadaiMemoTodo);
 
-            addMemo(kadaiMemo, kadaiMemoListAll);
+            // addMemo(kadaiMemo, kadaiMemoListAll);
 
             // Save
             let entity = {};
@@ -310,8 +310,14 @@ function todoAdd(event) {
             entity.kadaiMemoTodo = kadaiMemoListAll;
             chrome.storage.local.set(entity, function () {
             });
+
+            let mergedKadaiList = mergeKadai(cacheParsedKadai, kadaiMemoListAll, 1)
+            let mergedKadaiListAll = mergeKadaiListAll(extractKadai(cacheParsedKadai), kadaiMemoListAll, 1)
+            insertSideNav(mergedKadaiList, mergedKadaiListAll, tabList);
         });
     });
+
+
 }
 
 function createSideNav(lastKadaiGetTime) {
@@ -465,7 +471,15 @@ function insertSideNav(parsedKadai, kadaiListAll, lectureIDList) {
                     }
                     chkbox.id = kid;
                     chkbox.lectureID = lectureID;
-                    chkbox.addEventListener('change', updateKadaiTodo, false);
+                    if (kadaiList[id].isMemo === 1) {
+                        console.log(kadaiTitle)
+
+                        chkbox.addEventListener('change', updateKadaiMemoTodo, false);
+                    }else{
+                        chkbox.addEventListener('change', updateKadaiTodo, false);
+                    }
+
+
                     label.htmlFor = kid;
                     appendChildAll(C_list_body, [chkbox, label, date, remain_time, title]);
                     cnt++;
@@ -852,47 +866,35 @@ function mergeKadai(kadaiListTarget, kadaiListSource, isMemo) {
     console.log("memo", kadaiListSource)
 
     for (let i=0; i<kadaiListSource.length; i++) {
+        let temp = {};
 
+        let kid = kadaiListSource[i].kid;
+        let due = kadaiListSource[i].dueDate;
+        let title = kadaiListSource[i].title;
+        let isFinished = kadaiListSource[i].isFinished;
 
+        // すでに科目がListにあるか見る
+        const q = kadaiListTarget.findIndex((kadai) => {
+            return (kadai.lectureID === kadaiListSource[i].lectureID);
+        });
 
+        //無ければ新規作成
+        if (q === -1) {
+            temp.lectureID = kadaiListSource[i].lectureID;
+            temp.kadaiList = [{kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo}];
+            temp.closestTime = due;
+            temp.farthestTime = due;
 
+            kadaiListTarget.push(temp);
+        } else {
+            temp = kadaiListTarget[q];
+            //一番期限がやばい課題のタイムスタンプを記録
+            if (temp.closestTime > due) temp.closestTime = due;
+            if (temp.farthestTime < due) temp.farthestTime = due;
 
-        let kadaiList = kadaiListSource[i].kadaiList;
-
-        for (let j=0; j<kadaiList.length; j++){
-            let temp = {};
-
-            let kid = kadaiList[i].kid;
-            let due = kadaiList[i].dueTimeStamp;
-            let title = kadaiList[i].kadaiTitle;
-            let isFinished = kadaiList[i].isFinished;
-
-            // すでに科目がListにあるか見る
-            const q = kadaiListTarget.findIndex((kadai) => {
-                return (kadai.lectureID === kadaiListSource[i].lectureID);
-            });
-
-            //無ければ新規作成
-            if (q === -1) {
-                temp.lectureID = kadaiListSource[i].lectureID;
-                temp.kadaiList = [{kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo}];
-                temp.closestTime = due;
-                temp.farthestTime = due;
-
-                kadaiListTarget.push(temp);
-            } else {
-                temp = kadaiListTarget[q];
-                //一番期限がやばい課題のタイムスタンプを記録
-                if (temp.closestTime > due) temp.closestTime = due;
-                if (temp.farthestTime < due) temp.farthestTime = due;
-
-                temp.kadaiList.push({kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo});
-                kadaiListTarget[q] = temp;
-            }
-
+            temp.kadaiList.push({kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished, isMemo: isMemo});
+            kadaiListTarget[q] = temp;
         }
-
-
     }
     return kadaiListTarget
 }
@@ -909,11 +911,13 @@ function mergeKadaiListAll(kadaiListTarget, kadaiListSource, isMemo) {
     return mergedKadaiListAll
 }
 
+let cacheParsedKadai;
+
 function getKadaiTodo2(parsedKadai) {
     let kadaiListAll = extractKadai(parsedKadai);
 
-    Promise.all([getFromStorage('kadaiTodo'), getFromStorage('kadaiMemo'), getFromStorage('kadaiMemoTodo')])
-        .then(([kadaiTodo, kadaiMemo, kadaiMemoTodo]) => {
+    Promise.all([getFromStorage('kadaiTodo'), getFromStorage('kadaiMemoTodo')])
+        .then(([kadaiTodo, kadaiMemoTodo]) => {
             // 通常の課題の処理
             if (kadaiTodo !== undefined) {
                 for (let i = 0; i < kadaiListAll.length; i++) {
@@ -931,11 +935,12 @@ function getKadaiTodo2(parsedKadai) {
             }
 
             // 手動追加の課題メモの処理
-            if (kadaiMemo === undefined) kadaiMemo = [];
             if (kadaiMemoTodo === undefined) kadaiMemoTodo = [];
 
-            let mergedKadaiList = mergeKadai(parsedKadai, kadaiMemo, 1)
+            let mergedKadaiList = mergeKadai(parsedKadai, kadaiMemoTodo, 1)
             let mergedKadaiListAll = mergeKadaiListAll(kadaiListAll, kadaiMemoTodo, 1)
+
+            cacheParsedKadai = parsedKadai;
 
             // insertSideNav(parsedKadai, kadaiListAll, tabList);
             insertSideNav(mergedKadaiList, mergedKadaiListAll, tabList);
@@ -996,7 +1001,7 @@ function updateVisited(lectureID) {
 
 function saveLectureID(tablist) {
     let entity = {};
-
+    console.log("saved LecID")
     entity.lectureInfo = tablist;
     entity.lastLectureIDGetTime = nowTime;
     chrome.storage.local.set(entity, function () {
@@ -1005,7 +1010,7 @@ function saveLectureID(tablist) {
 
 function saveKadai(parsedKadai) {
     let entity = {};
-
+    console.log("saved kadai")
     entity.kadai = parsedKadai;
     entity.lastKadaiGetTime = nowTime;
     chrome.storage.local.set(entity, function () {
@@ -1014,7 +1019,7 @@ function saveKadai(parsedKadai) {
 
 function saveHasNew(noticationList) {
     let entity = {};
-
+    console.log("saved hasnew")
     entity.hasNewItem = noticationList;
     chrome.storage.local.set(entity, function () {
     });
@@ -1022,7 +1027,7 @@ function saveHasNew(noticationList) {
 
 function saveKadaiTodo(kadaiListAll) {
     let entity = {};
-
+    console.log("saved kadaiTodoall")
     entity.kadaiTodo = kadaiListAll;
     chrome.storage.local.set(entity, function () {
     });
@@ -1030,7 +1035,7 @@ function saveKadaiTodo(kadaiListAll) {
 
 function saveKadaiMemoTodo(kadaiMemoListAll) {
     let entity = {};
-
+    console.log("saved kadaimemotodoall")
     entity.kadaiMemoTodo = kadaiMemoListAll;
     chrome.storage.local.set(entity, function () {
     });
