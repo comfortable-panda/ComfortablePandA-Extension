@@ -747,7 +747,7 @@ function getTabList() {
     let domain = null;
     for (const elem of elements) {
         let tabInfo = {}
-        const m = elem.href.match("(https?:\/\/[^/]+)\/portal\/site\/([^/]+)");
+        const m = elem.href.match("(https?:\/\/[^/]+)\/portal\/site-reset\/([^/]+)");
         if (m && m[2].charAt(0) !=='~') {
             tabInfo.type = 'deafult'; //TODO
             tabInfo.lectureID = m[2];
@@ -869,7 +869,7 @@ function getExamTodo(examListAll, parsedExam) {
 function getKadaiFromPandA() {
     // console.log("connecting to panda api");
     return $.ajax({
-        url: "http://35.227.163.2/direct/assignment/my.json",
+        url: "https://panda.ecs.kyoto-u.ac.jp/direct/assignment/my.json",
         dataType: "json",
         type: "get",
         cache: false,
