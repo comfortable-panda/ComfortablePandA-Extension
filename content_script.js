@@ -29,7 +29,7 @@ let p_title = createElem("p", {className: "kadai-title"});
 let main_div = createElem("div", {id: "mySidenav"});
 let kadaiDiv = createElem("div", {className: "kadai-tab"});
 let examDiv = createElem("div", {className: "exam-tab"});
-let parent = document.getElementById('container');
+let parent = document.getElementById('pageBody');
 let ref = document.getElementById('toolMenuWrap');
 
 //----------- End miniPandA declaration --------------//
@@ -315,7 +315,7 @@ function todoAdd(event) {
 function createSideNav(lastKadaiGetTime) {
     let lectureIDList = tabList;
     // add hamburger
-    let topbar = document.getElementById("mastHead");
+    let topbar = document.getElementById("mastLogin");
     hamburger.addEventListener('click', toggleSideNav);
     try {
         topbar.appendChild(hamburger);
@@ -391,11 +391,12 @@ function createSideNav(lastKadaiGetTime) {
     kadaiDiv.appendChild(memoEditBox);
     // add edit box
 
-    try {
-        parent.insertBefore(main_div, ref);
-    } catch (e) {
-        console.log("Could not create sidenav.");
-    }
+    // try {
+    //     parent.insertBefore(main_div, ref);
+    // } catch (e) {
+    //     console.log("Could not create sidenav.");
+    // }
+    parent.insertBefore(main_div, ref);
 }
 
 function insertSideNav(parsedKadai, kadaiListAll, lectureIDList) {
@@ -865,7 +866,7 @@ function getExamTodo(examListAll, parsedExam) {
 function getKadaiFromPandA() {
     // console.log("connecting to panda api");
     return $.ajax({
-        url: "https://panda.ecs.kyoto-u.ac.jp/direct/assignment/my.json",
+        url: "http://35.227.163.2/direct/assignment/my.json",
         dataType: "json",
         type: "get",
         cache: false,
