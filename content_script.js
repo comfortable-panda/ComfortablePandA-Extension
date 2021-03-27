@@ -29,7 +29,7 @@ let p_title = createElem("p", {className: "kadai-title"});
 let main_div = createElem("div", {id: "mySidenav"});
 let kadaiDiv = createElem("div", {className: "kadai-tab"});
 let examDiv = createElem("div", {className: "exam-tab"});
-let parent = document.getElementById('container');
+let parent = document.getElementById('pageBody');
 let ref = document.getElementById('toolMenuWrap');
 
 //----------- End miniPandA declaration --------------//
@@ -315,7 +315,7 @@ function todoAdd(event) {
 function createSideNav(lastKadaiGetTime) {
     let lectureIDList = tabList;
     // add hamburger
-    let topbar = document.getElementById("mastHead");
+    let topbar = document.getElementById("mastLogin");
     hamburger.addEventListener('click', toggleSideNav);
     try {
         topbar.appendChild(hamburger);
@@ -391,16 +391,19 @@ function createSideNav(lastKadaiGetTime) {
     kadaiDiv.appendChild(memoEditBox);
     // add edit box
 
-    try {
-        parent.insertBefore(main_div, ref);
-    } catch (e) {
-        console.log("Could not create sidenav.");
-    }
+    // try {
+    //     parent.insertBefore(main_div, ref);
+    // } catch (e) {
+    //     console.log("Could not create sidenav.");
+    // }
+    parent.insertBefore(main_div, ref);
 }
 
 function insertSideNav(parsedKadai, kadaiListAll, lectureIDList) {
     let idList = parseID(lectureIDList);
     parsedKadai = sortKadai(parsedKadai);
+    console.log(parsedKadai);
+    console.log(idList);
 
     // generate kadai todo list
     for (let i = 0; i < 4; i++) {
@@ -509,18 +512,20 @@ function insertSideNavExam(parsedExam, examListAll, lectureIDList, lastExamGetTi
 
     let examBox = createElem("div", {className: "examBox"});
 
-    let loadButton = createElem("button", {innerText: "テスト・クイズ情報を取得する", className: "btn-square"});
-    loadButton.addEventListener("click", loadExamfromPanda, false);
+    // let loadButton = createElem("button", {innerText: "テスト・クイズ情報を取得する", className: "btn-square"});
+    // loadButton.addEventListener("click", loadExamfromPanda, false);
 
     let dateTime = new Date(lastExamGetTime);
     let lastLoad = createElem("p", {className: "lastLoad"});
     lastLoad.innerText = "最終更新：　" + dateTime.toLocaleDateString() + " " + dateTime.getHours() + ":" + ('00' + dateTime.getMinutes()).slice(-2) + ":" + ('00' + dateTime.getSeconds()).slice(-2);
     if (lastExamGetTime === undefined) lastLoad.innerText = "最終更新：未取得";
 
-    let info1 = createElem("p", {innerText: "※PandAに若干の負荷がかかるため、必要時以外取得ボタンを押さないようお願いします。"});
-    let info2 = createElem("p", {innerText: "※各コースサイトの「テスト・クイズ」に関連付けられてないものについては取得できません。取得されたテスト・クイズ一覧は参考程度にご覧ください。"});
+    let info1 = createElem("p", {innerText: "現在調整中です。"});
+    // let info1 = createElem("p", {innerText: "※PandAに若干の負荷がかかるため、必要時以外取得ボタンを押さないようお願いします。"});
+    // let info2 = createElem("p", {innerText: "※各コースサイトの「テスト・クイズ」に関連付けられてないものについては取得できません。取得されたテスト・クイズ一覧は参考程度にご覧ください。"});
 
-    appendChildAll(examBox, [lastLoad, loadButton, info1, info2]);
+    // appendChildAll(examBox, [lastLoad, loadButton, info1, info2]);
+    appendChildAll(examBox, [info1]);
 
     // generate exam todo list
     for (let i = 0; i < 4; i++) {
@@ -736,28 +741,22 @@ function addNotificationBadge(lectureIDList, upToDateKadaiList) {
 }
 
 function getTabList() {
-    let lectureIDList = [];
-
-    for (let i = 2; i < defaultTabCount; i++) {
-        let tmpTab = {};
-        let lectureID = defaultTab[i].getElementsByTagName('a')[0].getAttribute('href').slice(-17);
-        let lectureID2 = defaultTab[i].getElementsByTagName('span')[1].getAttribute('data');
-        let lectureName = defaultTab[i].getElementsByTagName('a')[0].getAttribute('title').split("]")[1];
-
-        tmpTab.type = 'default';
-        tmpTab.lectureID = lectureID2;
-        tmpTab.lectureName = lectureName;
-        lectureIDList.push(tmpTab);
-    }
-    for (let i = 0; i < otherSiteTabCount; i++) {
-        let tmpTab = {};
-        let lectureID = otherSiteTab[i].getElementsByTagName('a')[0].getAttribute('href').slice(-17);
-        let lectureName = otherSiteTab[i].getElementsByTagName('a')[0].getAttribute('title').split("]")[1];
-
-        tmpTab.type = 'otherSite';
-        tmpTab.lectureID = lectureID;
-        tmpTab.lectureName = lectureName;
-        lectureIDList.push(tmpTab);
+    const elementCollection = document.getElementsByClassName("link-container");
+    const elements = Array.prototype.slice.call(elementCollection);
+    const lectureIDList = [];
+    let domain = null;
+    for (const elem of elements) {
+        let tabInfo = {}
+        const m = elem.href.match("(https?:\/\/[^/]+)\/portal\/site-reset\/([^/]+)");
+        if (m && m[2].charAt(0) !=='~') {
+            tabInfo.type = 'deafult'; //TODO
+            tabInfo.lectureID = m[2];
+            tabInfo.lectureName = elem.title;
+            if (!domain) {
+                domain = m[1];
+            }
+            lectureIDList.push(tabInfo);
+        }
     }
     return lectureIDList;
 }
@@ -771,12 +770,17 @@ function parseKadai(data, types) {
         let lecID = item[i].context;
         let kid = item[i].id;
         let title = item[i].title;
-        let due = item[i].dueTime.time;
+        let due = parseInt(item[i].dueTime.epochSecond)*1000;
         let isFinished = 0;
+        let status = item[i].status;
         // add only available kadai
         if (due <= nowTime) {
             continue;
         }
+        // TODO: これでもいいかも
+        // if (status === "CLOSED"){
+        //     continue
+        // }
         let kadaiDict = {kid: kid, dueTimeStamp: due, kadaiTitle: title};
         if (types === 'mini') {
             kadaiDict = {kid: kid, dueTimeStamp: due, kadaiTitle: title, isFinished: isFinished};
@@ -1074,6 +1078,7 @@ function loadAndDisplay(lastKadaiGetTime) {
             let collectionCount = result.assignment_collection.length;
             let parsedKadai = parseKadai(result);
 
+
             display(parsedKadai, collectionCount);
 
             miniPandAReady();
@@ -1181,16 +1186,27 @@ function miniPandAReady() {
     hamburger.textContent = "☰";
 }
 
+function isLoggedIn(){
+    let scripts = document.getElementsByTagName("script");
+    let loggedIn = false;
+    for (let script of scripts){
+        if (script.text.match("\"loggedIn\": true")) loggedIn = true;
+    }
+    return loggedIn
+}
+
 function main() {
-    insertCSS();
-    getFromStorage('lastKadaiGetTime').then(function (lastKadaiGetTime) {
-        createSideNav(lastKadaiGetTime);
-        //display hamburger first
-        setTimeout(() => {
-            loadAndDisplay(lastKadaiGetTime);
-            updateFlags();
-        }, 50);
-    });
+    if (isLoggedIn()) {
+        insertCSS();
+        getFromStorage('lastKadaiGetTime').then(function (lastKadaiGetTime) {
+            createSideNav(lastKadaiGetTime);
+            //display hamburger first
+            setTimeout(() => {
+                loadAndDisplay(lastKadaiGetTime);
+                updateFlags();
+            }, 50);
+        });
+    }
 }
 
 main();
