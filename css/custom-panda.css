@@ -298,11 +298,11 @@
     padding: 0;
     border: none;
     border-radius: 0;
-    outline: antiquewhite;
-    background: salmon;
+    /*outline: antiquewhite;*/
+    /*background: salmon;*/
     -webkit-appearance: none;
     appearance: none;
-    /*display: "";*/
+    display: none;
 }
 
 .cp_tab .cp_tabpanel {
