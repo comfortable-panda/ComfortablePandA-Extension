@@ -1186,16 +1186,27 @@ function miniPandAReady() {
     hamburger.textContent = "☰";
 }
 
+function isLoggedIn(){
+    let scripts = document.getElementsByTagName("script");
+    let loggedIn = false;
+    for (let script of scripts){
+        if (script.text.match("\"loggedIn\": true")) loggedIn = true;
+    }
+    return loggedIn
+}
+
 function main() {
-    insertCSS();
-    getFromStorage('lastKadaiGetTime').then(function (lastKadaiGetTime) {
-        createSideNav(lastKadaiGetTime);
-        //display hamburger first
-        setTimeout(() => {
-            loadAndDisplay(lastKadaiGetTime);
-            updateFlags();
-        }, 50);
-    });
+    if (isLoggedIn()) {
+        insertCSS();
+        getFromStorage('lastKadaiGetTime').then(function (lastKadaiGetTime) {
+            createSideNav(lastKadaiGetTime);
+            //display hamburger first
+            setTimeout(() => {
+                loadAndDisplay(lastKadaiGetTime);
+                updateFlags();
+            }, 50);
+        });
+    }
 }
 
 main();
