@@ -741,20 +741,20 @@ function addNotificationBadge(lectureIDList, upToDateKadaiList) {
 }
 
 function getTabList() {
-    const elementCollection = document.getElementsByClassName("link-container");
+    const elementCollection = document.getElementsByClassName("fav-sites-entry");
     const elements = Array.prototype.slice.call(elementCollection);
     const lectureIDList = [];
-    let domain = null;
     for (const elem of elements) {
         let tabInfo = {}
-        const m = elem.href.match("(https?:\/\/[^/]+)\/portal\/site-reset\/([^/]+)");
-        if (m && m[2].charAt(0) !=='~') {
-            tabInfo.type = 'deafult'; //TODO
-            tabInfo.lectureID = m[2];
-            tabInfo.lectureName = elem.title;
-            if (!domain) {
-                domain = m[1];
-            }
+        let lecture = elem.getElementsByTagName("div")[0].getElementsByTagName("a")[0];
+        let lectureName = lecture.title;
+        let lectureID = lecture.href.match("(https?:\/\/[^/]+)\/portal\/site-reset\/([^/]+)")
+        // console.log(lectureName);
+        // console.log(lectureID);
+        if (lectureID && lectureID[2].slice(0,4) === "2021") {
+            tabInfo.type = 'default'; //TODO
+            tabInfo.lectureID = lectureID[2];
+            tabInfo.lectureName = lectureName;
             lectureIDList.push(tabInfo);
         }
     }
