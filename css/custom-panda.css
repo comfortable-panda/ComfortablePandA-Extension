@@ -1,16 +1,16 @@
 .nav-danger {
-    background: #e85555 !important;
-    border: 1px solid #e85555 !important;
+    background: #f78989 !important;
+    border: 1px solid #f78989 !important;
 }
 
 .nav-warning {
-    background: #d7aa57 !important;
-    border: 1px solid #d7aa57 !important;
+    background: #fdd783 !important;
+    border: 1px solid #fdd783 !important;
 }
 
 .nav-safe {
-    background: #62b665 !important;
-    border: 1px solid #62b665 !important;
+    background: #8bd48d !important;
+    border: 1px solid #8bd48d !important;
 }
 
 .badge::after {
