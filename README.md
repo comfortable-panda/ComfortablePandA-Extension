@@ -56,6 +56,7 @@ Also check box is available for you to distinguish completed assignments from wo
 - 2020/10/28 v1.6.1 Using async on storage.get
 - 2020/12/22 v1.7.0 Order assignments by closestTime.
 - 2021/03/28 v2.0.0 Support for Sakai21.
+- 2021/04/10 v2.1.0 Fixed errors.
 
 # License
 MIT
