@@ -1,5 +1,5 @@
 //----------- Begin miniPandA declaration --------------//
-const defaultTab = document.querySelectorAll('.nav-menu');
+const defaultTab = document.querySelectorAll('.Mrphs-sitesNav__menuitem');
 const defaultTabCount = Object.keys(defaultTab).length;
 const otherSiteTab = document.querySelectorAll('#otherSiteList > li');
 const otherSiteTabCount = Object.keys(otherSiteTab).length;
@@ -696,7 +696,8 @@ function addNotificationBadge(lectureIDList, upToDateKadaiList) {
         // default Tab
         if (lectureIDList[i].type === 'default') {
             for (let j = 2; j < defaultTabCount; j++) {
-                let lectureID = defaultTab[j].getElementsByTagName('span')[1].getAttribute('data');
+                let lectureID = defaultTab[j].getElementsByTagName('a')[1].getAttribute('data-site-id');
+                if (lectureID === null) lectureID = defaultTab[j].getElementsByTagName('a')[0].getAttribute('data-site-id');
                 const q = upToDateKadaiList.findIndex((kadai) => {
                     return (kadai.lectureID === lectureID);
                 });
@@ -707,32 +708,16 @@ function addNotificationBadge(lectureIDList, upToDateKadaiList) {
                     let daysUntilDue = getDaysUntil(nowTime, upToDateKadaiList[q].closestTime);
                     if (daysUntilDue <= 1) {
                         defaultTab[j].classList.add('nav-danger');
+                        defaultTab[j].getElementsByTagName('a')[0].classList.add('nav-danger');
+                        defaultTab[j].getElementsByTagName('a')[1].classList.add('nav-danger');
                     } else if (daysUntilDue <= 5) {
                         defaultTab[j].classList.add('nav-warning');
+                        defaultTab[j].getElementsByTagName('a')[0].classList.add('nav-warning');
+                        defaultTab[j].getElementsByTagName('a')[1].classList.add('nav-warning');
                     } else if (daysUntilDue <= 14) {
                         defaultTab[j].classList.add('nav-safe');
-                    }
-                }
-            }
-        }
-        // otherSite Tab
-        else if (lectureIDList[i].type === 'otherSite') {
-            for (let j = 0; j < otherSiteTabCount; j++) {
-                let lectureID = otherSiteTab[j].getElementsByTagName('a')[0].getAttribute('href').slice(-17);
-                const q = upToDateKadaiList.findIndex((kadai) => {
-                    return (kadai.lectureID === lectureID);
-                });
-                if (q !== -1) {
-                    if (upToDateKadaiList[q].isUpdate === 1) {
-                        otherSiteTab[j].classList.add('badge');
-                    }
-                    let daysUntilDue = getDaysUntil(nowTime, upToDateKadaiList[q].closestTime);
-                    if (daysUntilDue <= 1) {
-                        otherSiteTab[j].classList.add('nav-danger');
-                    } else if (daysUntilDue <= 5) {
-                        otherSiteTab[j].classList.add('nav-warning');
-                    } else if (daysUntilDue <= 14) {
-                        otherSiteTab[j].classList.add('nav-safe');
+                        defaultTab[j].getElementsByTagName('a')[0].classList.add('nav-safe');
+                        defaultTab[j].getElementsByTagName('a')[1].classList.add('nav-safe');
                     }
                 }
             }
@@ -749,8 +734,6 @@ function getTabList() {
         let lecture = elem.getElementsByTagName("div")[0].getElementsByTagName("a")[0];
         let lectureName = lecture.title;
         let lectureID = lecture.href.match("(https?:\/\/[^/]+)\/portal\/site-reset\/([^/]+)")
-        // console.log(lectureName);
-        // console.log(lectureID);
         if (lectureID && lectureID[2].slice(0,4) === "2021") {
             tabInfo.type = 'default'; //TODO
             tabInfo.lectureID = lectureID[2];
@@ -758,6 +741,7 @@ function getTabList() {
             lectureIDList.push(tabInfo);
         }
     }
+    console.log("getTabList", lectureIDList)
     return lectureIDList;
 }
 
@@ -1055,8 +1039,9 @@ function getSiteID() {
 }
 
 function updateFlags() {
-    if (getSiteID() && getSiteID().length === 17) {
-        updateVisited(getSiteID());
+    let lectureID = getSiteID();
+    if (lectureID && lectureID.length === 17) {
+        updateVisited(lectureID);
     }
 }
 
